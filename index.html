@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>若中ソーラン節</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon" />
 <style>
@@ -14,19 +14,33 @@ html, body {
   position:absolute; width:1920px; height:1080px;
   background:#fff; left:50%; top:50%; transform-origin:50% 50%;
 }
-#imageDisplay {
+
+/* 画像表示部分 */
+#slideshow {
   position:absolute; top:0; left:0; width:1920px; height:985.5px;
   object-fit:contain; background:#fff; z-index:1;
+  user-drag: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
 }
+
+/* bottomBar */
 #bottomBar {
   position:absolute; left:0; top:985.5px; width:1920px; height:94.5px;
   background:#9fdefd; z-index:0;
 }
+
+/* ボタン共通 */
 .btn {
   position:absolute; background:none; border:none; cursor:pointer; padding:0; z-index:5;
 }
 .btn img {
   width:100%; height:100%; object-fit:contain; display:block;
+  user-drag: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
 }
 
 /* presetMenu */
@@ -45,11 +59,7 @@ html, body {
 
 /* speedMenu */
 #speedMenu {
-  position:absolute; display:none; width:160px; height:134px;
-  left:909.1px; top:875.3px; z-index:12;
-}
-#speedMenu img.menu-bg {
-  position:absolute; top:0; left:0; width:100%; height:100%; z-index:2;
+  position:absolute; display:none; width:160px; height:134px; z-index:12;
 }
 .speed-btn {
   position:absolute; width:74px; height:53px; border-radius:10px;
@@ -59,14 +69,12 @@ html, body {
 .speed-btn.active {
   border:2px solid #ff3333; box-shadow:0 4px 10px rgba(255,50,50,0.12);
 }
-#btnSpeedToggle {
-  left:909.1px; top:998.8px; width:160px; height:68px; z-index:13;
-}
+#btnSpeedToggle { z-index:13; }
 </style>
 </head>
 <body>
 <div id="parentContainer">
-  <img id="imageDisplay" src="image/1.png" alt="表示画像">
+  <img id="slideshow" src="image/1.png" alt="表示画像">
   <div id="bottomBar"></div>
 
   <!-- 再生系ボタン -->
@@ -88,76 +96,76 @@ html, body {
   </div>
 
   <!-- speed -->
-  <button id="btnSpeedToggle" class="btn"><img src="image/speed_ajust.svg" alt="再生速度"></button>
+  <button id="btnSpeedToggle" class="btn" style="left:909.1px; top:998.8px; width:160px; height:68px;"><img src="image/speed_ajust.svg" alt="再生速度"></button>
   <div id="speedMenu">
     <img src="image/speed_ajust_menu.svg" class="menu-bg" alt="速度メニュー">
-    <div id="speedBtn05" class="speed-btn" style="left:3.5px; top:3.4px;" data-rate="0.5"><img src="image/speed_05.svg" style="width:100%;height:100%;border-radius:10px;"></div>
-    <div id="speedBtn08" class="speed-btn" style="left:82px; top:3.4px;" data-rate="0.8"><img src="image/speed_08.svg" style="width:100%;height:100%;border-radius:10px;"></div>
-    <div id="speedBtn10" class="speed-btn" style="left:3.5px; top:59.8px;" data-rate="1.0"><img src="image/speed_10.svg" style="width:100%;height:100%;border-radius:10px;"></div>
-    <div id="speedBtn12" class="speed-btn" style="left:82px; top:59.8px;" data-rate="1.2"><img src="image/speed_12.svg" style="width:100%;height:100%;border-radius:10px;"></div>
+    <div id="speedBtn05" class="speed-btn" style="left:3.5px; top:3.4px;" data-rate="0.5"><img src="image/speed_05.svg"></div>
+    <div id="speedBtn08" class="speed-btn" style="left:82px; top:3.4px;" data-rate="0.8"><img src="image/speed_08.svg"></div>
+    <div id="speedBtn10" class="speed-btn" style="left:3.5px; top:59.8px;" data-rate="1.0"><img src="image/speed_10.svg"></div>
+    <div id="speedBtn12" class="speed-btn" style="left:82px; top:59.8px;" data-rate="1.2"><img src="image/speed_12.svg"></div>
   </div>
 
   <audio id="audio" src="audio/sample.mp3"></audio>
 </div>
 
 <script>
+const slideshow = document.getElementById("slideshow");
+const audio = document.getElementById("audio");
+
 // 画像切替リスト
 const imageTimes = [
-  {min:0, sec:0, src:"image/1.png"},
-  {min:0, sec:5, src:"image/2.png"},
+  {min:0, sec:0,  src:"image/1.png"},
+  {min:0, sec:5,  src:"image/2.png"},
   {min:0, sec:54, src:"image/3.png"},
   {min:1, sec:30, src:"image/4.png"},
   {min:2, sec:35, src:"image/5.png"},
 ];
 
-const audio=document.getElementById('audio');
-const btn4=document.getElementById('btn4');
-const btn4Img=btn4.querySelector('img');
-const imageDisplay=document.getElementById('imageDisplay');
+let mode="ALL"; // 初期モード
 
-// 再生/一時停止
-btn4.addEventListener('click',()=>{audio.paused?audio.play():audio.pause();});
+// 再生ボタン
+document.getElementById('btn4').addEventListener('click',()=>{audio.paused?audio.play():audio.pause();});
+const btn4Img = document.getElementById('btn4').querySelector('img');
 audio.addEventListener('play',()=>{btn4Img.src="image/0.svg"; btn4Img.alt="一時停止";});
 audio.addEventListener('pause',()=>{btn4Img.src="image/start.svg"; btn4Img.alt="再生";});
 
 // 再生系ボタン
-document.getElementById('btn1').addEventListener('click',()=>{});
 document.getElementById('btn2').addEventListener('click',()=>{audio.currentTime=0;});
 document.getElementById('btn3').addEventListener('click',()=>audio.pause());
-document.getElementById('btn5').addEventListener('click',()=>{audio.currentTime=0;audio.play();});
+document.getElementById('btn5').addEventListener('click',()=>{audio.currentTime=0; audio.play();});
 document.getElementById('btn7').addEventListener('click',()=>audio.currentTime=Math.max(0,audio.currentTime-10));
 document.getElementById('btn8').addEventListener('click',()=>audio.currentTime=Math.min(audio.duration,audio.currentTime+10));
 
-// preset
+// プリセット
 const presetBtn=document.getElementById("btnPreset");
 const presetMenu=document.getElementById("presetMenu");
-let mode="ALL";
 presetBtn.addEventListener("click",(e)=>{
   e.stopPropagation();
   presetMenu.style.display=(presetMenu.style.display==="block"?"none":"block");
+  presetMenu.style.left = presetBtn.offsetLeft + "px";
+  presetMenu.style.top  = (presetBtn.offsetTop - presetMenu.offsetHeight) + "px";
 });
 document.getElementById("btnPreset1").addEventListener("click",()=>{
-  mode="ALL"; imageDisplay.src="image/1.png"; presetMenu.style.display="none";
+  mode="ALL"; slideshow.src="image/1.png"; presetMenu.style.display="none";
 });
 document.getElementById("btnPreset2").addEventListener("click",()=>{
-  mode="SOUNDS_ONLY"; imageDisplay.src="image/sounds_only.png"; presetMenu.style.display="none";
+  mode="SOUNDS_ONLY"; slideshow.src="image/sounds_only.png"; presetMenu.style.display="none";
 });
 
-// speed
+// 速度設定
 const speedToggle=document.getElementById('btnSpeedToggle');
 const speedMenu=document.getElementById('speedMenu');
 audio.playbackRate=1.0;
 document.getElementById('speedBtn10').classList.add('active');
-speedToggle.addEventListener('click',(e)=>{
-  e.stopPropagation();
-  speedMenu.style.display=(speedMenu.style.display==="block"?"none":"block");
-});
-function setPlaybackRate(rate,btnId){
+
+function setPlaybackRate(rate, btnId){
   audio.playbackRate=rate;
   document.querySelectorAll('.speed-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById(btnId).classList.add('active');
   speedMenu.style.display='none';
 }
+
+speedToggle.addEventListener('click',(e)=>{e.stopPropagation(); speedMenu.style.display=(speedMenu.style.display==="block"?"none":"block");});
 document.getElementById('speedBtn05').addEventListener('click',(e)=>{e.stopPropagation(); setPlaybackRate(0.5,'speedBtn05');});
 document.getElementById('speedBtn08').addEventListener('click',(e)=>{e.stopPropagation(); setPlaybackRate(0.8,'speedBtn08');});
 document.getElementById('speedBtn10').addEventListener('click',(e)=>{e.stopPropagation(); setPlaybackRate(1.0,'speedBtn10');});
@@ -169,19 +177,19 @@ document.addEventListener('click',(e)=>{
   if(speedMenu.style.display==="block" && !speedMenu.contains(e.target) && !speedToggle.contains(e.target)) speedMenu.style.display="none";
 });
 
-// 画像切替
+// 画像切替（時間に応じて）
 audio.addEventListener('timeupdate',()=>{
   if(mode==="ALL"){
-    const currentSec=Math.floor(audio.currentTime);
+    const currentSec = audio.currentTime;
     for(let i=imageTimes.length-1;i>=0;i--){
-      const t=imageTimes[i].min*60+imageTimes[i].sec;
+      const t=imageTimes[i].min*60 + imageTimes[i].sec;
       if(currentSec>=t){
-        if(!imageDisplay.src.includes(imageTimes[i].src)) imageDisplay.src=imageTimes[i].src;
+        if(slideshow.src.indexOf(imageTimes[i].src)===-1) slideshow.src=imageTimes[i].src;
         break;
       }
     }
   } else if(mode==="SOUNDS_ONLY"){
-    if(!imageDisplay.src.includes("sounds_only.png")) imageDisplay.src="image/sounds_only.png";
+    if(slideshow.src.indexOf("sounds_only.png")===-1) slideshow.src="image/sounds_only.png";
   }
 });
 
