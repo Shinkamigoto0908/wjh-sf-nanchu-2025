@@ -44,7 +44,7 @@ html, body {
   width: 1920px;
   height: 94.5px;
   background: #a4e2ff;
-  z-index: 0; /* 既存ボタンやpresetMenuより下 */
+  z-index: 0;
 }
 
 .btn {
@@ -68,7 +68,7 @@ html, body {
   display: none;
   width: 188px;
   height: 158px;
-  z-index: 10; /* 既存ボタンより前面 */
+  z-index: 10;
   background: transparent;
 }
 
@@ -78,7 +78,7 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 5; /* 背景はボタンより下 */
+  z-index: 5;
 }
 
 #presetMenu button {
@@ -87,7 +87,7 @@ html, body {
   background: none;
   cursor: pointer;
   padding: 0;
-  z-index: 15; /* ボタンを前面に */
+  z-index: 15;
 }
 
 #presetMenu button img {
@@ -119,9 +119,7 @@ html, body {
   <!-- presetメニュー -->
   <div id="presetMenu">
     <img src="image/preset_menu.svg" class="menu-bg">
-    <!-- ①歌詞付き -->
     <button id="btnPreset1" style="top:4px; left:4px; width:180.3px; height:62.5px;"><img src="image/all.svg" alt="歌詞付きモード"></button>
-    <!-- ②音声のみ -->
     <button id="btnPreset2" style="top:70.9px; left:4px; width:180.3px; height:62.5px;"><img src="image/sounds_only.svg" alt="音声のみモード"></button>
   </div>
 
@@ -129,13 +127,7 @@ html, body {
 </div>
 
 <script>
-const audio = document.getElementById('audio');
-const btn4 = document.getElementById('btn4');
-const btn4Img = btn4.querySelector('img');
-const imageDisplay = document.getElementById('imageDisplay');
-const presetBtn = document.getElementById("btnPreset");
-const presetMenu = document.getElementById("presetMenu");
-
+// 画像切替リスト（5枚版）
 const imageTimes = [
   {min:0, sec:0, src:"image/1.png"},
   {min:0, sec:5, src:"image/2.png"},
@@ -144,48 +136,60 @@ const imageTimes = [
   {min:2, sec:35, src:"image/5.png"},
 ];
 
+const audio=document.getElementById('audio');
+const btn4=document.getElementById('btn4');
+const btn4Img=btn4.querySelector('img');
+const imageDisplay=document.getElementById('imageDisplay');
+
 // 再生/一時停止
-btn4.addEventListener('click', () => { audio.paused ? audio.play() : audio.pause(); });
-audio.addEventListener('play', () => { btn4Img.src="image/0.svg"; btn4Img.alt="一時停止"; });
-audio.addEventListener('pause', () => { btn4Img.src="image/start.svg"; btn4Img.alt="再生"; });
+btn4.addEventListener('click',()=>{audio.paused?audio.play():audio.pause();});
+audio.addEventListener('play',()=>{btn4Img.src="image/0.svg"; btn4Img.alt="一時停止";});
+audio.addEventListener('pause',()=>{btn4Img.src="image/start.svg"; btn4Img.alt="再生";});
 
-// 既存ボタン
-document.getElementById('btn1').addEventListener('click', ()=> {});
-document.getElementById('btn2').addEventListener('click', ()=> { audio.currentTime=0; });
-document.getElementById('btn3').addEventListener('click', ()=> audio.pause());
-document.getElementById('btn5').addEventListener('click', ()=> { audio.currentTime=0; audio.play(); });
-document.getElementById('btn7').addEventListener('click', ()=> audio.currentTime=Math.max(0,audio.currentTime-10));
-document.getElementById('btn8').addEventListener('click', ()=> audio.currentTime=Math.min(audio.duration,audio.currentTime+10));
+// 再生系ボタン
+document.getElementById('btn1').addEventListener('click',()=>{});
+document.getElementById('btn2').addEventListener('click',()=>{audio.currentTime=0;});
+document.getElementById('btn3').addEventListener('click',()=>audio.pause());
+document.getElementById('btn5').addEventListener('click',()=>{audio.currentTime=0;audio.play();});
+document.getElementById('btn7').addEventListener('click',()=>audio.currentTime=Math.max(0,audio.currentTime-10));
+document.getElementById('btn8').addEventListener('click',()=>audio.currentTime=Math.min(audio.duration,audio.currentTime+10));
 
-// presetメニュー追加
+// preset
+const presetBtn=document.getElementById("btnPreset");
+const presetMenu=document.getElementById("presetMenu");
 let mode="ALL";
-
-presetBtn.addEventListener("click", (e)=>{
+presetBtn.addEventListener("click",(e)=>{
   e.stopPropagation();
-  presetMenu.style.display="block";
+  presetMenu.style.display=(presetMenu.style.display==="block"?"none":"block");
   presetMenu.style.left=presetBtn.offsetLeft+"px";
-  presetMenu.style.top=(presetBtn.offsetTop - presetMenu.offsetHeight) + "px";
+  presetMenu.style.top=(presetBtn.offsetTop - presetMenu.offsetHeight)+"px";
+});
+document.getElementById("btnPreset1").addEventListener("click",()=>{
+  mode="ALL"; imageDisplay.src="image/1.png"; presetMenu.style.display="none";
+});
+document.getElementById("btnPreset2").addEventListener("click",()=>{
+  mode="SOUNDS_ONLY"; imageDisplay.src="image/sounds_only.png"; presetMenu.style.display="none";
 });
 
-document.getElementById("btnPreset1").addEventListener("click", ()=>{
-  mode="ALL";
-  imageDisplay.src="image/1.png";
-  presetMenu.style.display="none";
-});
-document.getElementById("btnPreset2").addEventListener("click", ()=>{
-  mode="SOUNDS_ONLY";
-  imageDisplay.src="image/sounds_only.png";
-  presetMenu.style.display="none";
+// speed
+const speedToggle=document.getElementById('btnSpeedToggle');
+const speedMenu=document.getElementById('speedMenu');
+audio.playbackRate=1.0;
+document.getElementById('speedBtn10').classList.add('active');
+document.getElementById('speedBtn05').addEventListener('click',(e)=>{e.stopPropagation(); audio.playbackRate=0.5; document.querySelectorAll('.speed-btn').forEach(el=>el.classList.remove('active')); document.getElementById('speedBtn05').classList.add('active'); speedMenu.style.display='none';});
+document.getElementById('speedBtn08').addEventListener('click',(e)=>{e.stopPropagation(); audio.playbackRate=0.8; document.querySelectorAll('.speed-btn').forEach(el=>el.classList.remove('active')); document.getElementById('speedBtn08').classList.add('active'); speedMenu.style.display='none';});
+document.getElementById('speedBtn10').addEventListener('click',(e)=>{e.stopPropagation(); audio.playbackRate=1.0; document.querySelectorAll('.speed-btn').forEach(el=>el.classList.remove('active')); document.getElementById('speedBtn10').classList.add('active'); speedMenu.style.display='none';});
+document.getElementById('speedBtn12').addEventListener('click',(e)=>{e.stopPropagation(); audio.playbackRate=1.2; document.querySelectorAll('.speed-btn').forEach(el=>el.classList.remove('active')); document.getElementById('speedBtn12').classList.add('active'); speedMenu.style.display='none';});
+speedToggle.addEventListener('click',(e)=>{e.stopPropagation(); speedMenu.style.display=(speedMenu.style.display==="block"?"none":"block");});
+
+// 外クリックで閉じる
+document.addEventListener('click',(e)=>{
+  if(presetMenu.style.display==="block" && !presetMenu.contains(e.target) && !presetBtn.contains(e.target)) presetMenu.style.display="none";
+  if(speedMenu.style.display==="block" && !speedMenu.contains(e.target) && !speedToggle.contains(e.target)) speedMenu.style.display="none";
 });
 
-document.addEventListener("click", (e)=>{
-  if(presetMenu.style.display==="block" && !presetMenu.contains(e.target) && !presetBtn.contains(e.target)){
-    presetMenu.style.display="none";
-  }
-});
-
-// timeupdate
-audio.addEventListener('timeupdate', ()=>{
+// 画像切替
+audio.addEventListener('timeupdate',()=>{
   if(mode==="ALL"){
     const currentSec=audio.currentTime;
     for(let i=imageTimes.length-1;i>=0;i--){
@@ -202,14 +206,10 @@ audio.addEventListener('timeupdate', ()=>{
 
 // リサイズ
 function resizeContainer(){
-  const vw=window.innerWidth;
-  const vh=window.innerHeight;
-  const baseW=1920, baseH=1080;
+  const vw=window.innerWidth, vh=window.innerHeight, baseW=1920, baseH=1080;
   const parent=document.getElementById('parentContainer');
-  const ar=baseW/baseH;
-  let scale;
-  if(vw/vh>ar) scale=vh/baseH; else scale=vw/baseW;
-  parent.style.transform=`translate(-50%, -50%) scale(${scale})`;
+  const scale=(vw/vh>baseW/baseH)?vh/baseH:vw/baseW;
+  parent.style.transform=`translate(-50%,-50%) scale(${scale})`;
 }
 window.addEventListener('resize',resizeContainer);
 window.addEventListener('load',resizeContainer);
